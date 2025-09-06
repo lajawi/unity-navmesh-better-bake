@@ -1,0 +1,29 @@
+{
+  "name": "com.github.username.template",
+  "version": "0.0.1",
+  "displayName": "PACKAGE NAME",
+  "description": "A brief description of the package. This is the text that appears in the details view of the Package Manager window. This field supports UTF–8 character codes. This means that you can use special formatting character codes, such as line breaks (\n) and bullets (\u25AA).",
+  "unity": "2019.4",
+  "category": "",
+  "author": {
+    "name": "Author Name",
+    "email": "author@email.com",
+    "url": "https://github.com/username"
+  },
+  "hideInEditor": false,
+  "samples": [
+    {
+      "displayName": "Sample Name",
+      "path": "Samples~/Path-To-Sample",
+      "interactiveImport": false
+    },
+    {
+      "displayName": "Sample Name (.unitypackage)",
+      "path": "Samples~/Path-To-Sample",
+      "interactiveImport": true
+    }
+  ],
+  "dependencies": {
+    "name-of-dependency": "1.0.0"
+  }
+}

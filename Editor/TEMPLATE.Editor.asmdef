@@ -1,0 +1,16 @@
+{
+    "name": "TEMPLATE.Editor",
+    "references": [],
+    "includePlatforms": [
+        "CloudRendering",
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
