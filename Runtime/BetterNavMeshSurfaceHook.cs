@@ -13,7 +13,7 @@ namespace Lajawi
         static float hight;
         static bool isError;
         private static GameObject trees = null;
-        public static void OnPreBake(NavMeshSurface surface)
+        public static void OnPreBake()
         {
             DestroyTrees();
 
@@ -86,7 +86,7 @@ namespace Lajawi
             if (!isError) Debug.Log("All " + obstacle.Length + " NavMeshObstacles were succesfully added to your Scene, Horray !");
         }
 
-        public static void OnPostBake(NavMeshSurface surface)
+        public static void OnPostBake()
         {
         }
 
