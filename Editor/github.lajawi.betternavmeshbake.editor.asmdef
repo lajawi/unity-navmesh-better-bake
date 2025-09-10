@@ -1,0 +1,20 @@
+{
+    "name": "lajawi.BetterNavMeshBake.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:8c4dd21966739024fbd72155091d199e",
+        "GUID:86c9d8e67265f41469be06142c397d17",
+        "GUID:7e5e327d4608f75e59e136a5d6e88ef1"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
