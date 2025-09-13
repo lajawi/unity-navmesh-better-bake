@@ -9,7 +9,7 @@ A Unity package that enhances the [NavMesh Surface](https://docs.unity3d.com/Pac
 
 Install the package according to the [installation instructions]. Once installed, you can use the extra buttons from the *NavMesh Surface* to use this package to bake.
 
-![alt text](./Documentation~/images/image.png)
+![Screenshot of the NavMesh Surface component, with the extra buttons.](./Documentation~/images/navmesh-surface-component-with-package.png)
 
 ### What this package currently does
 

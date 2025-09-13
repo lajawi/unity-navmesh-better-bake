@@ -1,6 +1,6 @@
 {
   "name": "com.github.lajawi.betternavmeshbake",
-  "version": "0.0.1",
+  "version": "1.0.0",
 
   "displayName": "Better NavMesh Bake",
   "description": "Adds a little convenience for baking NavMesh Surfaces.",
@@ -12,6 +12,10 @@
     "email": "",
     "url": "https://github.com/lajawi/"
   },
+  "changelogUrl": "https://github.com/lajawi/unity-navmesh-better-bake/blob/main/CHANGELOG.md",
+  "documentationUrl": "https://github.com/lajawi/unity-navmesh-better-bake/blob/main/README.md",
+  "license": "GPL-3.0-only",
+  "licensesUrl": "https://github.com/lajawi/unity-navmesh-better-bake/blob/main/LICENSE.md",
   "hideInEditor": false,
   "dependencies": {
     "com.unity.ai.navigation": "2.0.8+"

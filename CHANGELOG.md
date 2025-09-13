@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [1.0.0] - 2025.09.13
 
 ### Added
 
@@ -9,3 +9,4 @@
     - cleans up realised instances after the bake
 
 [Unreleased]: https://github.com/lajawi/unity-navmesh-better-bake/blob/main
+[1.0.0]: https://github.com/lajawi/unity-navmesh-better-bake/releases/tag/v1.0.0
