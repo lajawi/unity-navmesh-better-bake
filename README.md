@@ -14,14 +14,20 @@ Install the package according to the [installation instructions]. Once installed
 ### What this package currently does
 
 - Make real instances of terrain trees for baking (they get removed after baking). These trees support the following components:
-  - Mesh Renderer and Mesh Filter, only used when *Use Geometry* is set to *Render Meshes*
-    > [!IMPORTANT]
-    > Both need a Mesh Renderer and Mesh Filter need to be on the tree.
+  - Mesh Renderer and Mesh Filter, only used when *Use Geometry* is set to *Render Meshes*, [#Problems that may not be obvious](#mesh-renderer--mesh-filter)
   - Colliders of any type, can be multiple, mix and matched, only used when *Use Geometry* is set to *Physics Colliders*
   - NavMesh Modifier
   - NavMesh Modifier Volume
-  > [!IMPORTANT]
-  > All components above need to be enabled to be used by the NavMesh Surface.
+
+> [!IMPORTANT]
+> All components above need to be enabled to be used by the NavMesh Surface.
+
+### Problems that may not be obvious
+
+#### Mesh Renderer & Mesh Filter
+
+> [!IMPORTANT]
+> Both a Mesh Renderer and Mesh Filter need to be on the tree, otherwise the Surface will not recognise it.
 
 ## Installation
 
@@ -32,6 +38,10 @@ Open the Package Manager window, click on `Add Package from Git URL ...`, then e
 ```
 https://github.com/lajawi/unity-navmesh-better-bake.git
 ```
+
+> [!TIP]
+> Head to the Unity documentation for help if need be.
+> https://docs.unity3d.com/Manual/upm-ui-giturl.html
 
 ### Option 2: Manually Editing `package.json`
 
