@@ -14,7 +14,7 @@ namespace Lajawi
     [CustomEditor(typeof(NavMeshSurface))]
     public class BetterNavMeshSurfaceEditor : Editor
     {
-        private static GameObject trees = null;
+        private static List<GameObject> treeParents = new();
 
         #region Variables
         SerializedProperty m_AgentTypeID;
@@ -326,7 +326,8 @@ namespace Lajawi
                 var y = terrain.terrainData.size.y;
                 var z = terrain.terrainData.size.z;
 
-                trees = new GameObject($"TREES {terrain.name}");
+                var parent = new GameObject($"TREES {terrain.name}");
+                treeParents.Add(parent);
 
                 foreach (TreeInstance tree in treeInstances)
                 {
@@ -363,7 +364,7 @@ namespace Lajawi
                             break;
                     }
 
-                    Vector3 position = new(tree.position.x * x, tree.position.y * y, tree.position.z * z);
+                    Vector3 position = new Vector3(tree.position.x * x, tree.position.y * y, tree.position.z * z) + terrain.GetPosition();
                     Quaternion rotation = Quaternion.AngleAxis(tree.rotation * Mathf.Rad2Deg, Vector3.up);
 
                     float widthScale = tree.widthScale;
@@ -372,7 +373,7 @@ namespace Lajawi
                     scale = new(scale.x * widthScale, scale.y * heightScale, scale.z * widthScale);
 
                     GameObject obj = new GameObject($"Tree");
-                    obj.transform.parent = trees.transform;
+                    obj.transform.parent = parent.transform;
                     obj.transform.position = position;
                     obj.transform.rotation = rotation;
                     obj.transform.localScale = scale;
@@ -384,14 +385,11 @@ namespace Lajawi
 
         private void PostBake()
         {
-            if (Application.isPlaying)
+            foreach (GameObject parent in treeParents)
             {
-                Destroy(trees);
+                DestroyImmediate(parent);
             }
-            else
-            {
-                DestroyImmediate(trees);
-            }
+            treeParents = new();
         }
 
         private void AddComponents(GameObject obj, Component[] components)
