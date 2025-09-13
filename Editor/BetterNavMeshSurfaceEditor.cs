@@ -19,10 +19,8 @@ namespace Lajawi
 
         private static List<GameObject> _treeParents = new();
 
-        #region Variables
         SerializedProperty m_AgentTypeID;
         SerializedProperty m_UseGeometry;
-        #endregion
 
         void OnEnable()
         {
@@ -48,7 +46,6 @@ namespace Lajawi
             {
                 GUILayout.BeginHorizontal();
 
-                #region Clear
                 using (new EditorGUI.DisabledScope(targets.All(s => (s as NavMeshSurface)?.navMeshData == null)))
                 {
                     if (GUILayout.Button((GUIContent)_contentType.GetField("ClearButton").GetValue(null)))
@@ -57,9 +54,7 @@ namespace Lajawi
                         SceneView.RepaintAll();
                     }
                 }
-                #endregion
 
-                #region Bake
                 GUIContent bakeButton = new GUIContent((GUIContent)_contentType.GetField("BakeButton").GetValue(null));
                 bakeButton.text += " Better";
                 bakeButton.tooltip += "\nThis button will include terrain trees.";
@@ -70,7 +65,6 @@ namespace Lajawi
                     NavMeshAssetManager.instance.StartBakingSurfaces(targets);
                     PostBake();
                 }
-                #endregion
 
                 GUILayout.EndHorizontal();
             }
@@ -96,37 +90,6 @@ namespace Lajawi
                 {
                     GameObject treePrefab = terrain.terrainData.treePrototypes[tree.prototypeIndex].prefab;
 
-                    List<Component> components = new();
-                    switch (m_UseGeometry.intValue)
-                    {
-                        case 0: // Render Meshes
-                            MeshFilter meshFilter = treePrefab.GetComponent<MeshFilter>();
-                            if (meshFilter == null)
-                            {
-                                Debug.LogWarning($"There is no mesh filter attached to {treePrefab.name}, skipping. If you want this tree to be included in the bake, please add one.", treePrefab);
-                                continue;
-                            }
-                            MeshRenderer meshRenderer = treePrefab.GetComponent<MeshRenderer>();
-                            if (meshRenderer == null)
-                            {
-                                Debug.LogWarning($"There is no mesh renderer attached to {treePrefab.name}, skipping. If you want this tree to be included in the bake, please add one", treePrefab);
-                                continue;
-                            }
-                            components.Add(meshFilter);
-                            components.Add(meshRenderer);
-                            break;
-
-                        case 1: // Physics Colliders
-                            Collider collider = treePrefab.GetComponent<Collider>();
-                            if (collider == null)
-                            {
-                                Debug.LogWarning($"There is no collider attached to {treePrefab.name}, skipping. If you want this tree to be included in the bake, please add one.", treePrefab);
-                                continue;
-                            }
-                            components.Add(collider);
-                            break;
-                    }
-
                     Vector3 position = new Vector3(tree.position.x * x, tree.position.y * y, tree.position.z * z) + terrain.GetPosition();
                     Quaternion rotation = Quaternion.AngleAxis(tree.rotation * Mathf.Rad2Deg, Vector3.up);
 
@@ -140,6 +103,53 @@ namespace Lajawi
                     obj.transform.position = position;
                     obj.transform.rotation = rotation;
                     obj.transform.localScale = scale;
+
+                    List<Component> components = new();
+                    switch (m_UseGeometry.intValue)
+                    {
+                        case 0: // Render Meshes
+                            if (!treePrefab.TryGetComponent(out MeshFilter meshFilter))
+                            {
+                                Debug.LogWarning($"There is no {nameof(MeshFilter)} attached to {treePrefab.name}, skipping. If you want this tree to be included in the bake, please add one.", treePrefab);
+                                continue;
+                            }
+                            if (!treePrefab.TryGetComponent(out MeshRenderer meshRenderer))
+                            {
+                                Debug.LogWarning($"There is no {nameof(MeshRenderer)} attached to {treePrefab.name}, skipping. If you want this tree to be included in the bake, please add one", treePrefab);
+                                continue;
+                            }
+
+                            if (!meshRenderer.enabled) Debug.LogWarning($"{treePrefab.name}'s {nameof(MeshRenderer)} is disabled.", treePrefab);
+
+                            components.Add(meshFilter);
+                            components.Add(meshRenderer);
+                            break;
+
+                        case 1: // Physics Colliders
+                            if (!treePrefab.TryGetComponent(out Collider _))
+                            {
+                                Debug.LogWarning($"There is no {nameof(Collider)} attached to {treePrefab.name}, skipping. If you want this tree to be included in the bake, please add one.", treePrefab);
+                                continue;
+                            }
+
+                            Collider[] colliders = treePrefab.GetComponents<Collider>();
+
+                            colliders.Where(coll => !coll.enabled).ToList().ForEach(coll => Debug.LogWarning($"{treePrefab.name}'s {coll.GetType().Name} is disabled.", treePrefab));
+
+                            components.AddRange(colliders);
+                            break;
+                    }
+
+                    if (treePrefab.TryGetComponent(out NavMeshModifier modifier))
+                    {
+                        if (!modifier.enabled) Debug.LogWarning($"{treePrefab.name}'s {nameof(NavMeshModifier)} is disabled.", treePrefab);
+                        components.Add(modifier);
+                    }
+                    if (treePrefab.TryGetComponent(out NavMeshModifierVolume modifierVolume))
+                    {
+                        if (!modifierVolume.enabled) Debug.LogWarning($"{treePrefab.name}'s {nameof(NavMeshModifierVolume)} is disabled.", treePrefab);
+                        components.Add(modifierVolume);
+                    }
 
                     AddComponents(obj, components.ToArray());
                 }
