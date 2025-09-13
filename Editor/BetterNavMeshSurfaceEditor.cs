@@ -327,6 +327,7 @@ namespace Lajawi
                 var z = terrain.terrainData.size.z;
 
                 var parent = new GameObject($"TREES {terrain.name}");
+                parent.hideFlags = HideFlags.HideAndDontSave;
                 treeParents.Add(parent);
 
                 foreach (TreeInstance tree in treeInstances)
