@@ -78,10 +78,6 @@ namespace Lajawi
             {
                 var treeInstances = terrain.terrainData.treeInstances;
 
-                var x = terrain.terrainData.size.x;
-                var y = terrain.terrainData.size.y;
-                var z = terrain.terrainData.size.z;
-
                 var parent = new GameObject($"TREES {terrain.name}");
                 parent.hideFlags = HideFlags.HideAndDontSave;
                 _treeParents.Add(parent);
@@ -90,24 +86,39 @@ namespace Lajawi
                 {
                     GameObject treePrefab = terrain.terrainData.treePrototypes[tree.prototypeIndex].prefab;
 
-                    Vector3 position = new Vector3(tree.position.x * x, tree.position.y * y, tree.position.z * z) + terrain.GetPosition();
-                    Quaternion rotation = Quaternion.AngleAxis(tree.rotation * Mathf.Rad2Deg, Vector3.up);
-
-                    float widthScale = tree.widthScale;
-                    float heightScale = tree.heightScale;
-                    Vector3 scale = treePrefab.transform.localScale;
-                    scale = new(scale.x * widthScale, scale.y * heightScale, scale.z * widthScale);
-
-                    GameObject obj = new GameObject($"Tree");
-                    obj.transform.parent = parent.transform;
-                    obj.transform.position = position;
-                    obj.transform.rotation = rotation;
-                    obj.transform.localScale = scale;
+                    GameObject obj = CreateObject(terrain, tree, treePrefab, parent.transform);
 
                     List<Component> components = new();
                     switch (m_UseGeometry.intValue)
                     {
                         case 0: // Render Meshes
+                            if (treePrefab.TryGetComponent(out LODGroup lodGroup))
+                            {
+                                if (lodGroup.GetLODs().Length > 1) Debug.Log($"{treePrefab.name} has multiple {nameof(MeshRenderer)}'s on LOD level 0. Beware that currently only the first one will be used.", treePrefab);
+
+                                var renderer = lodGroup.GetLODs()[0].renderers[0];
+
+                                if (!renderer)
+                                {
+                                    Debug.LogWarning($"There is no valid {nameof(MeshRenderer)} in the {nameof(LODGroup)} LOD level 0.", treePrefab);
+                                }
+                                else if (!renderer.gameObject.TryGetComponent(out MeshFilter lodMeshFilter))
+                                {
+                                    Debug.LogWarning($"{treePrefab.name} has an {nameof(LODGroup)} component but the first renderer lacks a {nameof(MeshFilter)} component.", renderer.gameObject);
+                                }
+                                else
+                                {
+                                    Component[] comps = { lodMeshFilter, renderer };
+                                    AddComponents(obj, comps);
+                                }
+                                if (components.Count >= 0)
+                                {
+                                    break;
+                                }
+
+                                Debug.LogWarning($"{treePrefab.name} has an {nameof(LODGroup)} component, but couldn't get used due to other warnings. Falling back to {nameof(MeshRenderer)} and {nameof(MeshFilter)}.", treePrefab);
+                            }
+
                             if (!treePrefab.TryGetComponent(out MeshFilter meshFilter))
                             {
                                 Debug.LogWarning($"There is no {nameof(MeshFilter)} attached to {treePrefab.name}, skipping. If you want this tree to be included in the bake, please add one.", treePrefab);
@@ -156,7 +167,7 @@ namespace Lajawi
             }
         }
 
-        private void PostBake()
+        private static void PostBake()
         {
             foreach (GameObject parent in _treeParents)
             {
@@ -165,7 +176,29 @@ namespace Lajawi
             _treeParents = new();
         }
 
-        private void AddComponents(GameObject obj, Component[] components)
+        private static GameObject CreateObject(Terrain terrain, TreeInstance tree, GameObject treePrefab, Transform parent)
+        {
+            var x = terrain.terrainData.size.x;
+            var y = terrain.terrainData.size.y;
+            var z = terrain.terrainData.size.z;
+
+            Vector3 position = new Vector3(tree.position.x * x, tree.position.y * y, tree.position.z * z) + terrain.GetPosition();
+            Quaternion rotation = Quaternion.AngleAxis(tree.rotation * Mathf.Rad2Deg, Vector3.up);
+
+            float widthScale = tree.widthScale;
+            float heightScale = tree.heightScale;
+            Vector3 scale = treePrefab.transform.localScale;
+            scale = new(scale.x * widthScale, scale.y * heightScale, scale.z * widthScale);
+
+            GameObject obj = new GameObject($"Tree");
+            obj.transform.parent = parent;
+            obj.transform.position = position;
+            obj.transform.rotation = rotation;
+            obj.transform.localScale = scale;
+            return obj;
+        }
+
+        private static void AddComponents(GameObject obj, Component[] components)
         {
             foreach (Component component in components)
             {
