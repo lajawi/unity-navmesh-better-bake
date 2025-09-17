@@ -78,10 +78,6 @@ namespace Lajawi
             {
                 var treeInstances = terrain.terrainData.treeInstances;
 
-                var x = terrain.terrainData.size.x;
-                var y = terrain.terrainData.size.y;
-                var z = terrain.terrainData.size.z;
-
                 var parent = new GameObject($"TREES {terrain.name}");
                 parent.hideFlags = HideFlags.HideAndDontSave;
                 _treeParents.Add(parent);
@@ -90,24 +86,18 @@ namespace Lajawi
                 {
                     GameObject treePrefab = terrain.terrainData.treePrototypes[tree.prototypeIndex].prefab;
 
-                    Vector3 position = new Vector3(tree.position.x * x, tree.position.y * y, tree.position.z * z) + terrain.GetPosition();
-                    Quaternion rotation = Quaternion.AngleAxis(tree.rotation * Mathf.Rad2Deg, Vector3.up);
-
-                    float widthScale = tree.widthScale;
-                    float heightScale = tree.heightScale;
-                    Vector3 scale = treePrefab.transform.localScale;
-                    scale = new(scale.x * widthScale, scale.y * heightScale, scale.z * widthScale);
-
-                    GameObject obj = new GameObject($"Tree");
-                    obj.transform.parent = parent.transform;
-                    obj.transform.position = position;
-                    obj.transform.rotation = rotation;
-                    obj.transform.localScale = scale;
-
                     List<Component> components = new();
                     switch (m_UseGeometry.intValue)
                     {
                         case 0: // Render Meshes
+                            if (treePrefab.TryGetComponent(out LODGroup lodGroup))
+                            {
+                                bool success = UseLODGroup(terrain, parent, tree, treePrefab, lodGroup);
+                                if (success) break;
+
+                                Debug.LogWarning($"Falling back to {nameof(MeshRenderer)} and {nameof(MeshFilter)}.", treePrefab);
+                            }
+
                             if (!treePrefab.TryGetComponent(out MeshFilter meshFilter))
                             {
                                 Debug.LogWarning($"There is no {nameof(MeshFilter)} attached to {treePrefab.name}, skipping. If you want this tree to be included in the bake, please add one.", treePrefab);
@@ -151,12 +141,55 @@ namespace Lajawi
                         components.Add(modifierVolume);
                     }
 
-                    AddComponents(obj, components.ToArray());
+                    if (components.Count > 0)
+                    {
+                        GameObject obj = CreateObject(terrain, tree, treePrefab, parent.transform);
+                        AddComponents(obj, components.ToArray());
+                    }
                 }
             }
         }
 
-        private void PostBake()
+        private static bool UseLODGroup(Terrain terrain, GameObject parent, TreeInstance tree, GameObject treePrefab, LODGroup lodGroup)
+        {
+            if (lodGroup.GetLODs().Length <= 0)
+            {
+                Debug.Log($"{treePrefab.name} has an {nameof(LODGroup)} but no LODs set up.", treePrefab);
+                return false;
+            }
+
+            GameObject lodParent = CreateObject(terrain, tree, treePrefab, parent.transform);
+
+            foreach (Renderer renderer in lodGroup.GetLODs()[0].renderers)
+            {
+                if (!renderer)
+                {
+                    Debug.LogWarning($"The {nameof(LODGroup)} LOD 0 has an empty or missing item.", lodGroup);
+                    continue;
+                }
+                if (!renderer.gameObject.TryGetComponent(out MeshFilter lodMeshFilter))
+                {
+                    Debug.LogWarning($"{treePrefab.name}'s {nameof(LODGroup)} {nameof(Renderer)} lacks a {nameof(MeshFilter)}.", renderer);
+                    continue;
+                }
+                Component[] comps = { lodMeshFilter, renderer };
+                GameObject obj = CreateChild(lodParent.transform, renderer.transform);
+                AddComponents(obj, comps);
+            }
+            if (lodGroup.GetLODs()[0].renderers.Length <= 0)
+            {
+                Debug.LogWarning($"{treePrefab.name} has an {nameof(LODGroup)} component, but no {nameof(Renderer)}'s on LOD 0.", treePrefab);
+                return false;
+            }
+            if (lodParent.transform.childCount <= 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static void PostBake()
         {
             foreach (GameObject parent in _treeParents)
             {
@@ -165,7 +198,39 @@ namespace Lajawi
             _treeParents = new();
         }
 
-        private void AddComponents(GameObject obj, Component[] components)
+        private static GameObject CreateObject(Terrain terrain, TreeInstance tree, GameObject treePrefab, Transform parent)
+        {
+            var x = terrain.terrainData.size.x;
+            var y = terrain.terrainData.size.y;
+            var z = terrain.terrainData.size.z;
+
+            Vector3 position = new Vector3(tree.position.x * x, tree.position.y * y, tree.position.z * z) + terrain.GetPosition();
+            Quaternion rotation = Quaternion.AngleAxis(tree.rotation * Mathf.Rad2Deg, Vector3.up);
+
+            float widthScale = tree.widthScale;
+            float heightScale = tree.heightScale;
+            Vector3 scale = treePrefab.transform.localScale;
+            scale = new(scale.x * widthScale, scale.y * heightScale, scale.z * widthScale);
+
+            GameObject obj = new GameObject($"Tree");
+            obj.transform.parent = parent;
+            obj.transform.position = position;
+            obj.transform.rotation = rotation;
+            obj.transform.localScale = scale;
+            return obj;
+        }
+
+        private static GameObject CreateChild(Transform parent, Transform transform)
+        {
+            GameObject obj = new GameObject("Tree");
+            obj.transform.parent = parent;
+            obj.transform.localPosition = transform.localPosition;
+            obj.transform.localRotation = transform.localRotation;
+            obj.transform.localScale = transform.localScale;
+            return obj;
+        }
+
+        private static void AddComponents(GameObject obj, Component[] components)
         {
             foreach (Component component in components)
             {

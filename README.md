@@ -7,13 +7,14 @@ A Unity package that enhances the [NavMesh Surface](https://docs.unity3d.com/Pac
 > [!IMPORTANT]
 > You need Unity's [AI Navigation](https://docs.unity3d.com/Packages/com.unity.ai.navigation@2.0/manual/index.html) package. When you install this package, it should depend on it and install it automatically for you.
 
-Install the package according to the [installation instructions]. Once installed, you can use the extra buttons from the *NavMesh Surface* to use this package to bake.
+Install the package according to the [installation instructions](#installation). Once installed, you can use the extra buttons from the *NavMesh Surface* to use this package to bake.
 
 ![Screenshot of the NavMesh Surface component, with the extra buttons.](./Documentation~/images/navmesh-surface-component-with-package.png)
 
 ### What this package currently does
 
 - Make real instances of terrain trees for baking (they get removed after baking). These trees support the following components:
+  - LOD Groups, only used when *Use Geometry* is set to *Render Meshes*, takes precedence to just a Mesh Renderer and Mesh Filter on the root object of a tree
   - Mesh Renderer and Mesh Filter, only used when *Use Geometry* is set to *Render Meshes*, [#Problems that may not be obvious](#mesh-renderer--mesh-filter)
   - Colliders of any type, can be multiple, mix and matched, only used when *Use Geometry* is set to *Physics Colliders*
   - NavMesh Modifier
