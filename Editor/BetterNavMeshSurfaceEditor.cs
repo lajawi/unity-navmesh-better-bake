@@ -154,7 +154,7 @@ namespace Lajawi
         {
             if (lodGroup.GetLODs().Length <= 0)
             {
-                Debug.Log($"{treePrefab.name} has an {nameof(LODGroup)} but no LOD levels set up.", treePrefab);
+                Debug.Log($"{treePrefab.name} has an {nameof(LODGroup)} but no LODs set up.", treePrefab);
                 return false;
             }
 
@@ -164,7 +164,7 @@ namespace Lajawi
             {
                 if (!renderer)
                 {
-                    Debug.LogWarning($"The {nameof(LODGroup)} LOD level 0 has an empty or missing item.", lodGroup);
+                    Debug.LogWarning($"The {nameof(LODGroup)} LOD 0 has an empty or missing item.", lodGroup);
                     continue;
                 }
                 if (!renderer.gameObject.TryGetComponent(out MeshFilter lodMeshFilter))
@@ -178,7 +178,7 @@ namespace Lajawi
             }
             if (lodGroup.GetLODs()[0].renderers.Length <= 0)
             {
-                Debug.LogWarning($"{treePrefab.name} has an {nameof(LODGroup)} component, but no {nameof(Renderer)}'s on LOD level 0.", treePrefab);
+                Debug.LogWarning($"{treePrefab.name} has an {nameof(LODGroup)} component, but no {nameof(Renderer)}'s on LOD 0.", treePrefab);
                 return false;
             }
             if (lodParent.transform.childCount <= 0)
