@@ -1,6 +1,6 @@
 {
   "name": "com.github.lajawi.betternavmeshbake",
-  "version": "1.0.0",
+  "version": "1.1.0",
 
   "displayName": "Better NavMesh Bake",
   "description": "Adds a little convenience for baking NavMesh Surfaces.",
