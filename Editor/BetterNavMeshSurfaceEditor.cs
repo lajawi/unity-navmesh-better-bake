@@ -86,37 +86,16 @@ namespace Lajawi
                 {
                     GameObject treePrefab = terrain.terrainData.treePrototypes[tree.prototypeIndex].prefab;
 
-                    GameObject obj = CreateObject(terrain, tree, treePrefab, parent.transform);
-
                     List<Component> components = new();
                     switch (m_UseGeometry.intValue)
                     {
                         case 0: // Render Meshes
                             if (treePrefab.TryGetComponent(out LODGroup lodGroup))
                             {
-                                if (lodGroup.GetLODs().Length > 1) Debug.Log($"{treePrefab.name} has multiple {nameof(MeshRenderer)}'s on LOD level 0. Beware that currently only the first one will be used.", treePrefab);
+                                bool success = UseLODGroup(terrain, parent, tree, treePrefab, lodGroup);
+                                if (success) break;
 
-                                var renderer = lodGroup.GetLODs()[0].renderers[0];
-
-                                if (!renderer)
-                                {
-                                    Debug.LogWarning($"There is no valid {nameof(MeshRenderer)} in the {nameof(LODGroup)} LOD level 0.", treePrefab);
-                                }
-                                else if (!renderer.gameObject.TryGetComponent(out MeshFilter lodMeshFilter))
-                                {
-                                    Debug.LogWarning($"{treePrefab.name} has an {nameof(LODGroup)} component but the first renderer lacks a {nameof(MeshFilter)} component.", renderer.gameObject);
-                                }
-                                else
-                                {
-                                    Component[] comps = { lodMeshFilter, renderer };
-                                    AddComponents(obj, comps);
-                                }
-                                if (components.Count >= 0)
-                                {
-                                    break;
-                                }
-
-                                Debug.LogWarning($"{treePrefab.name} has an {nameof(LODGroup)} component, but couldn't get used due to other warnings. Falling back to {nameof(MeshRenderer)} and {nameof(MeshFilter)}.", treePrefab);
+                                Debug.LogWarning($"Falling back to {nameof(MeshRenderer)} and {nameof(MeshFilter)}.", treePrefab);
                             }
 
                             if (!treePrefab.TryGetComponent(out MeshFilter meshFilter))
@@ -162,9 +141,52 @@ namespace Lajawi
                         components.Add(modifierVolume);
                     }
 
-                    AddComponents(obj, components.ToArray());
+                    if (components.Count > 0)
+                    {
+                        GameObject obj = CreateObject(terrain, tree, treePrefab, parent.transform);
+                        AddComponents(obj, components.ToArray());
+                    }
                 }
             }
+        }
+
+        private static bool UseLODGroup(Terrain terrain, GameObject parent, TreeInstance tree, GameObject treePrefab, LODGroup lodGroup)
+        {
+            if (lodGroup.GetLODs().Length <= 0)
+            {
+                Debug.Log($"{treePrefab.name} has an {nameof(LODGroup)} but no LOD levels set up.", treePrefab);
+                return false;
+            }
+
+            GameObject lodParent = CreateObject(terrain, tree, treePrefab, parent.transform);
+
+            foreach (Renderer renderer in lodGroup.GetLODs()[0].renderers)
+            {
+                if (!renderer)
+                {
+                    Debug.LogWarning($"The {nameof(LODGroup)} LOD level 0 has an empty or missing item.", lodGroup);
+                    continue;
+                }
+                if (!renderer.gameObject.TryGetComponent(out MeshFilter lodMeshFilter))
+                {
+                    Debug.LogWarning($"{treePrefab.name}'s {nameof(LODGroup)} {nameof(Renderer)} lacks a {nameof(MeshFilter)}.", renderer);
+                    continue;
+                }
+                Component[] comps = { lodMeshFilter, renderer };
+                GameObject obj = CreateChild(lodParent.transform, renderer.transform);
+                AddComponents(obj, comps);
+            }
+            if (lodGroup.GetLODs()[0].renderers.Length <= 0)
+            {
+                Debug.LogWarning($"{treePrefab.name} has an {nameof(LODGroup)} component, but no {nameof(Renderer)}'s on LOD level 0.", treePrefab);
+                return false;
+            }
+            if (lodParent.transform.childCount <= 0)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private static void PostBake()
@@ -195,6 +217,16 @@ namespace Lajawi
             obj.transform.position = position;
             obj.transform.rotation = rotation;
             obj.transform.localScale = scale;
+            return obj;
+        }
+
+        private static GameObject CreateChild(Transform parent, Transform transform)
+        {
+            GameObject obj = new GameObject("Tree");
+            obj.transform.parent = parent;
+            obj.transform.localPosition = transform.localPosition;
+            obj.transform.localRotation = transform.localRotation;
+            obj.transform.localScale = transform.localScale;
             return obj;
         }
 
